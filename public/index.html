@@ -47,7 +47,7 @@
         /* Логотип */
         .header-image {
             width: 800px;
-            margin: 80px auto 40px; 
+            margin: 80px auto 40px;
             filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
             border: 3px solid #FF6B00;
             border-radius: 30px;
@@ -63,8 +63,8 @@
             max-width: 800px;
             width: 100%;
             box-shadow: 0 8px 16px rgba(0,0,0,0.15);
-            font-size: 1.5em; /* Было 1.3em */
-            line-height: 1.5; /* Добавляем межстрочный интервал */
+            font-size: 1.5em;
+            line-height: 1.5;
         }
 
         /* Виджет погоды */
@@ -122,11 +122,6 @@
             border-radius: 10px;
         }
 
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-5px); }
-        }
-
         /* Футер */
         footer {
             position: fixed;
@@ -138,6 +133,68 @@
             font-family: 'Segoe UI', Tahoma, sans-serif;
             color: #2A2A2A;
             border-top: 2px solid #FF6B00;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+        }
+
+        /* Кнопка разработчика */
+        .dev-button {
+            background: #FF6B00;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .dev-button:hover {
+            background: #cc5500;
+        }
+
+        /* Модальное окно */
+        #devModal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 10000;
+            transition: opacity 0.3s;
+            opacity: 0;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #devModal.show {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal-content {
+            background: white;
+            width: 320px;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.2);
+        }
+
+        .modal-content input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
         }
 
         /* Адаптивность */
@@ -147,8 +204,8 @@
                 margin: 60px auto 30px;
             }
             .weather-widget {
+                top: 100px;
                 min-width: 320px;
-                top: 15px;
             }
         }
 
@@ -158,6 +215,9 @@
             }
             .forecast {
                 grid-template-columns: 1fr;
+            }
+            .text-box {
+                font-size: 1.2em;
             }
         }
     </style>
@@ -213,18 +273,34 @@
         </div>
     </div>
 
-    <!-- Футер -->
+    <!-- Футер с кнопкой -->
     <footer>
-        2025, Balkan-i.com
+        <span>2025, Balkan-i.com</span>
+        <button id="devLoginBtn" class="dev-button">
+            For Developers
+        </button>
     </footer>
 
+    <!-- Модальное окно входа -->
+    <div id="devModal">
+        <div class="modal-content">
+            <h3 style="text-align: center; margin-bottom: 20px;">Developer Login</h3>
+            <input type="text" id="devUsername" placeholder="Username">
+            <input type="password" id="devPassword" placeholder="Password">
+            <button id="devSubmit" class="dev-button" style="width: 100%; margin-top: 15px;">
+                Login
+            </button>
+        </div>
+    </div>
+
     <script>
+        // Загрузка погоды
         async function fetchWeather() {
             try {
                 const response = await fetch('https://api.open-meteo.com/v1/forecast?latitude=42.4411&longitude=19.2636&current=temperature_2m,relative_humidity_2m,surface_pressure,weather_code&daily=weather_code,temperature_2m_max&timezone=auto&forecast_days=3');
                 const data = await response.json();
                 
-                // Текущая погода
+                // Обновление данных
                 document.querySelector('.temperature').textContent = 
                     `${Math.round(data.current.temperature_2m)}°C`;
                 document.querySelector('.details').innerHTML = `
@@ -233,7 +309,7 @@
                     <span>Pritisak: ${data.current.surface_pressure} hPa</span>
                 `;
 
-                // Прогноз на 2 дня
+                // Прогноз
                 const forecastElements = document.querySelectorAll('.day-forecast');
                 for(let i = 1; i <= 2; i++) {
                     forecastElements[i-1].querySelector('.temperature').textContent = 
@@ -242,7 +318,7 @@
                         getWeatherIcon(data.daily.weather_code[i]);
                 }
 
-                // Иконка текущей погоды
+                // Иконка погоды
                 const icon = document.querySelector('.weather-icon i');
                 icon.className = getWeatherIcon(data.current.weather_code);
                 
@@ -251,6 +327,7 @@
             }
         }
 
+        // Определение иконки
         function getWeatherIcon(code) {
             if (code <= 2) return 'fas fa-sun';
             if (code <= 49) return 'fas fa-cloud-sun';
@@ -258,6 +335,46 @@
             return 'fas fa-cloud';
         }
 
+        // Логика модального окна
+        document.getElementById('devLoginBtn').addEventListener('click', () => {
+            document.getElementById('devModal').classList.add('show');
+        });
+
+        document.getElementById('devModal').addEventListener('click', (e) => {
+            if(e.target === e.currentTarget) {
+                e.currentTarget.classList.remove('show');
+            }
+        });
+
+        document.getElementById('devSubmit').addEventListener('click', () => {
+    const username = document.getElementById('devUsername').value;
+    const password = document.getElementById('devPassword').value;
+    
+    fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if(data.success) {
+            window.location.href = 'http://185.121.234.123';
+        } else {
+            alert('Neispravni podaci! Proverite korisničko ime i lozinku.');
+        }
+    })
+    .catch(error => {
+        console.error('Greška pri prijavi:', error);
+        alert('Došlo je do greške pri komunikaciji sa serverom.');
+    });
+});
+
+        // Инициализация
         fetchWeather();
         setInterval(fetchWeather, 600000);
     </script>
