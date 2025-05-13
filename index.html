@@ -335,48 +335,51 @@
             return 'fas fa-cloud';
         }
 
-        // Логика модального окна
-        document.getElementById('devLoginBtn').addEventListener('click', () => {
-            document.getElementById('devModal').classList.add('show');
-        });
+// Логика модального окна
+document.getElementById('devLoginBtn').addEventListener('click', () => {
+        document.getElementById('devModal').classList.add('show');
+    });
 
-        document.getElementById('devModal').addEventListener('click', (e) => {
-            if(e.target === e.currentTarget) {
-                e.currentTarget.classList.remove('show');
-            }
-        });
-
-        document.getElementById('devSubmit').addEventListener('click', () => {
-    const username = document.getElementById('devUsername').value;
-    const password = document.getElementById('devPassword').value;
-    
-    fetch('/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+    document.getElementById('devModal').addEventListener('click', (e) => {
+        if(e.target === e.currentTarget) {
+            e.currentTarget.classList.remove('show');
         }
-        return response.json();
-    })
-    .then(data => {
-        if(data.success) {
+    });
+
+    // Хардкодные учетные данные для альфа-теста (замените своими)
+    const DEV_CREDENTIALS = {
+        login: 'testers',    // поменяйте на реальный логин
+        password: 'sdfgkjwetr9823455lk,m!'  // поменяйте на реальный пароль
+    };
+
+    // Обработчик входа
+    document.getElementById('devSubmit').addEventListener('click', () => {
+        const username = document.getElementById('devUsername').value;
+        const password = document.getElementById('devPassword').value;
+        
+        if(username === DEV_CREDENTIALS.login && password === DEV_CREDENTIALS.password) {
+            // Успешный вход - редирект на портал
             window.location.href = 'http://185.121.234.123';
         } else {
             alert('Neispravni podaci! Proverite korisničko ime i lozinku.');
+            // Очистка полей при ошибке
+            document.getElementById('devUsername').value = '';
+            document.getElementById('devPassword').value = '';
         }
-    })
-    .catch(error => {
-        console.error('Greška pri prijavi:', error);
-        alert('Došlo je do greške pri komunikaciji sa serverom.');
     });
-});
 
-        // Инициализация
-        fetchWeather();
-        setInterval(fetchWeather, 600000);
-    </script>
+    // Обработка нажатия Enter в полях ввода
+    document.getElementById('devUsername').addEventListener('keypress', (e) => {
+        if(e.key === 'Enter') document.getElementById('devSubmit').click();
+    });
+    
+    document.getElementById('devPassword').addEventListener('keypress', (e) => {
+        if(e.key === 'Enter') document.getElementById('devSubmit').click();
+    });
+
+    // Инициализация
+    fetchWeather();
+    setInterval(fetchWeather, 600000);
+</script>
 </body>
 </html>
